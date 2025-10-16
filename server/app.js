@@ -1,7 +1,7 @@
 const express = require('express'); 
 const cors = require('cors');
 const session = require('express-session');
-
+const { register, quizAttempts, metricsMiddleware } = require('./metrics');
 require("dotenv").config();
 const app = express()
 app.use(express.json());
@@ -37,6 +37,17 @@ app.use('/auth', authRouter);
 
 const quizRouter = require('./routes/quizRouter');
 app.use('/quiz', quizRouter);
+app.use(metricsMiddleware);
+
+app.get('/attempt-quiz', (req, res) => {
+  quizAttempts.inc();
+  res.send('Quiz attempted!');
+});
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
 
 /* Application port*/ 
 app.listen(process.env.PORT, () =>{      
